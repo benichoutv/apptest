@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BNC TV</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --app-bg: #f8f8f6; }
+    body { font-family: 'Montserrat', Arial, sans-serif; margin: 0; background: var(--app-bg);}
+    header { background: rgba(0, 0, 0, 0.5); color: white; display: flex; align-items: center; justify-content: center; padding: 20px; height: 100px; backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 999;}
+    header img { height: 180px; max-width: 100%; }
+    #posts { padding: 40px 10px; display: flex; flex-direction: column; gap: 34px; background: var(--app-bg); min-height: 100vh; align-items: center;}
+    .post { background-color: white; border-radius: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); max-width: 720px; width: 100%; overflow: hidden; cursor: pointer; }
+    .post img { width: 100%; height: auto; object-fit: cover; }
+    .post-content { padding: 20px; }
+    .desc-short { font-family: 'Anton'; font-size: 2em; margin-bottom: 10px; }
+    .desc-long { font-size: 1em; color: #444; }
+    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000;}
+    .modal-content { background: white; padding: 30px 24px; max-width: 580px; width: 96vw; border-radius: 20px; position: relative; overflow-y: auto; max-height: 90vh;}
+    .modal-content img { max-width: 100%; border-radius: 14px; margin-bottom: 20px;}
+    .modal-close { position: absolute; top: 12px; right: 14px; background: #d43c3c; color: white; border: none; border-radius: 5px; padding: 7px 12px; cursor: pointer; font-size: 1.1em; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <header><img src="bnctv.png" alt="BNC TV" /></header>
+  <main id="posts"></main>
+  <div class="modal" id="postModal"><div class="modal-content" id="modalContent"></div></div>
+  <script>
+    fetch("data.json")
+      .then(r => r.json())
+      .then(posts => {
+        const container = document.getElementById("posts");
+        posts.forEach(post => {
+          const div = document.createElement("div");
+          div.className = "post";
+          div.onclick = () => showPostDetail(post);
+          div.innerHTML = \`
+            <img src="\${post.image}" alt="">
+            <div class="post-content">
+              <div class="desc-short">\${post.desc}</div>
+            </div>
+          \`;
+          container.appendChild(div);
+        });
+      });
+
+    function showPostDetail(post) {
+      const modal = document.getElementById("postModal");
+      const content = document.getElementById("modalContent");
+      content.innerHTML = \`
+        <button class="modal-close" onclick="closeModal()">Fermer</button>
+        <img src="\${post.image}" alt="">
+        <div class="desc-short">\${post.desc}</div>
+        <div class="desc-long">\${post.longDesc || ''}</div>
+      \`;
+      modal.style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("postModal").style.display = "none";
+    }
+  </script>
+</body>
+</html>
