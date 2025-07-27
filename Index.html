@@ -1,1 +1,703 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BNC TV - Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Montserrat', Arial, sans-serif; margin: 0; background: #f8f8f6;}
+    header { background: #666; color: white; padding: 26px; font-size: 2em; letter-spacing: 1px; text-align: center;}
+    #toggle-admin-btn { position:fixed;top:18px;right:30px;z-index:1000;background:#007bff;color:white;border:none;padding:10px 22px;border-radius:8px;font-size:1.1em;box-shadow:0 2px 12px rgba(0,0,0,0.10);cursor:pointer; }
+    #filterDept { width:100%;max-width:280px;padding:8px;font-size:1em;border-radius:8px;border:1px solid #bbb; margin: 18px auto 0 auto; display:block;}
+    #admin-panel { background: #fff; padding: 20px; max-width: 460px; margin: 32px auto 32px auto; border-radius: 14px; box-shadow: 0 2px 14px rgba(0,0,0,0.06);}
+    #admin-panel input, #admin-panel textarea, #admin-panel button { width: 100%; margin: 7px 0; padding: 8px; font-size: 1em; border-radius: 7px; border: 1px solid #bbb;}
+    #admin-posts-list > div { display:flex; align-items:center; gap:10px; margin-bottom:8px; border-bottom:1px solid #eee; padding-bottom:6px;}
+    #admin-posts-list img { width:48px; height:48px; object-fit:cover; border-radius:6px;}
+    #admin-posts-list button { width:auto; padding:4px 8px; margin:0 2px;}
+    .btn-row { display:flex; gap:10px; margin:12px 0;}
+    .services-group, .specialities-group { display: flex; gap: 18px; margin: 14px 0 0 0; align-items: center;}
+    .service-checkbox-label, .speciality-checkbox-label { display: flex; align-items: center; font-size: 1em; gap: 6px; font-weight: 600; letter-spacing: 1px; color: #444;}
+    .speciality-checkbox-label span { font-size:1.4em;}
+    .logo-preview {width:120px;display:block;margin:15px auto 10px auto;border-radius:14px;}
+    .color-preview {width:38px;height:38px;display:inline-block;border-radius:7px;border:1.5px solid #aaa;margin-left:9px;vertical-align:middle;}
+    .admin-options-row {display:flex;align-items:center;gap:12px;margin:15px 0;}
 
+    /* --------- STYLE POST --------- */
+    .post {
+      max-width: 540px;
+      margin: 22px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.09);
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 0;
+      padding: 0;
+      min-height: 160px;
+      transition: box-shadow .19s;
+      overflow: hidden;
+      border: 1px solid #f3e8d1;
+    }
+    .post:hover {
+      box-shadow: 0 6px 36px rgba(0,0,0,0.15);
+      border-color: #ffdb8a;
+    }
+    .post-img {
+      width: 160px;
+      height: 100%;
+      min-width: 160px;
+      min-height: 160px;
+      object-fit: cover;
+      border-radius: 0;
+      box-shadow: none;
+      background: none;
+      margin: 0;
+      display: block;
+      align-self: stretch;
+    }
+    .post-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 7px;
+      min-width: 0;
+      padding: 15px 16px 13px 16px;
+    }
+    .desc-short {
+      font-size: 1em;
+      font-weight: 700;
+      color: #212124;
+      line-height: 1.21;
+      margin-bottom: 0px;
+    }
+    .desc-long {
+      font-size: 0.99em;
+      color: #464646;
+      line-height: 1.55;
+      margin-bottom: 0;
+      background: #f6f7fa;
+      border-radius: 5px;
+      padding: 8px 10px;
+      border-left: 3px solid #e2eaff;
+      margin-top: 3px;
+    }
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      align-items: center;
+      margin: 5px 0 0 0;
+    }
+    .service-badge {
+      background: #e5f4fb;
+      color: #1579b7;
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 0.99em;
+      font-weight: 600;
+    }
+    .specialities-row {
+      font-size: 1.33em;
+      display: inline-block;
+    }
+    .dept-badge {
+      background: #ffe1a8;
+      color: #352c00;
+      border-radius: 10px;
+      padding: 2px 10px;
+      font-size: 0.98em;
+      font-weight: 600;
+    }
+    .links-row {
+      margin-top: 9px;
+      display: flex;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+    .link-btn {
+      background: #206cff;
+      color: #fff;
+      padding: 7px 13px;
+      border-radius: 7px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.99em;
+      border: none;
+      display: inline-block;
+      box-shadow: 0 1px 4px rgba(32,108,255,0.09);
+      transition: background .17s;
+    }
+    .link-btn:hover { background: #1853c2; }
+
+    /* Responsive : on garde le mode horizontal même sur mobile */
+    @media (max-width:700px) {
+      .post { max-width: 99vw; padding: 8px 5px 8px 5px; gap: 10px;}
+      .post-img { width: 100px; min-width:100px; min-height:100px; }
+      .desc-short { font-size: 1em;}
+      .desc-long { font-size: 0.94em; padding: 6px 7px;}
+      .link-btn { padding: 6px 9px; font-size: 0.97em;}
+    }
+  </style>
+</head>
+<body>
+  <header>BNC TV</header>
+  <button id="toggle-admin-btn" onclick="toggleAdmin()">Admin</button>
+  <input type="text" id="filterDept" placeholder="Filtrer par département (ex: 75, 13)" oninput="renderPosts(this.value)">
+  <div id="admin-panel" style="display:none">
+    <h2>Options générales</h2>
+    <div class="admin-options-row">
+      <label>Logo&nbsp;: <input type="file" id="logoInput" accept="image/*"></label>
+      <img id="logoPreview" class="logo-preview" style="display:none" />
+    </div>
+    <div class="admin-options-row">
+      <label>Couleur de fond&nbsp;: <input type="color" id="bgcolorInput" value="#f8f8f6"></label>
+      <span id="colorPreview" class="color-preview"></span>
+    </div>
+    <hr>
+    <h2>Ajouter ou modifier un post</h2>
+    <div>
+      <span id="used-space"></span>
+      <button onclick="fullResetStorage()" style="background:#e45757;color:#fff;">Réinitialisation complète</button>
+    </div>
+    <div class="btn-row">
+      <button onclick="exportPostsJSON()">Exporter JSON</button>
+      <button onclick="importPostsJSON()">Importer JSON (classique)</button>
+      <button onclick="importPostsRAM()">Importer JSON (RAM SEULEMENT)</button>
+      <button onclick="exportHtmlFile()" style="background:#ff9800;color:#fff;">Exporter HTML</button>
+    </div>
+    <input type="file" id="importJsonInput" accept=".json" style="display:none;">
+    <input type="file" id="importJsonInputRAM" accept=".json" style="display:none;">
+    <input type="hidden" id="editIndex">
+    <input type="text" id="descInput" placeholder="Description courte">
+    <textarea id="longDescInput" placeholder="Description complète"></textarea>
+    <input type="text" id="departementInput" placeholder="Départements (ex: 75, 13)">
+    <div class="services-group">
+      <label class="service-checkbox-label"><input type="checkbox" id="serviceLivraison"> Livraison</label>
+      <label class="service-checkbox-label"><input type="checkbox" id="serviceSurplace"> Surplace</label>
+      <label class="service-checkbox-label"><input type="checkbox" id="serviceEnvoi"> Envoi</label>
+    </div>
+    <div class="specialities-group">
+      <label class="speciality-checkbox-label"><input type="checkbox" id="specFlocon"> <span>❄️</span></label>
+      <label class="speciality-checkbox-label"><input type="checkbox" id="specBrocoli"> <span>🥦</span></label>
+      <label class="speciality-checkbox-label"><input type="checkbox" id="specChocolat"> <span>🍫</span></label>
+      <label class="speciality-checkbox-label"><input type="checkbox" id="specPilule"> <span>💊</span></label>
+    </div>
+    <input type="file" id="imageInput" accept="image/*">
+    <input type="text" id="link1name" placeholder="Nom du lien 1">
+    <input type="url" id="link1url" placeholder="URL du lien 1">
+    <input type="text" id="link2name" placeholder="Nom du lien 2">
+    <input type="url" id="link2url" placeholder="URL du lien 2">
+    <input type="text" id="link3name" placeholder="Nom du lien 3">
+    <input type="url" id="link3url" placeholder="URL du lien 3">
+    <button onclick="submitPost()" style="background:#2d7cff;color:#fff;">Enregistrer</button>
+    <div id="admin-posts-list"></div>
+  </div>
+  <main id="posts"></main>
+  <script>
+    let posts = JSON.parse(localStorage.getItem("bnctv_posts") || "[]");
+    let adminVisible = false;
+    let ramMode = false;
+    let globalData = JSON.parse(localStorage.getItem("bnctv_global")) || {logo: "", bgcolor: "#f8f8f6"};
+    document.body.style.background = globalData.bgcolor || "#f8f8f6";
+    document.getElementById("logoInput").onchange = function(e) {
+      if (!this.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        globalData.logo = ev.target.result;
+        localStorage.setItem("bnctv_global", JSON.stringify(globalData));
+        showLogoPreview();
+      };
+      reader.readAsDataURL(this.files[0]);
+    };
+    function showLogoPreview() {
+      const img = document.getElementById("logoPreview");
+      if (globalData.logo) {
+        img.src = globalData.logo;
+        img.style.display = "";
+      } else {
+        img.src = "";
+        img.style.display = "none";
+      }
+    }
+    document.getElementById("bgcolorInput").oninput = function() {
+      globalData.bgcolor = this.value;
+      document.body.style.background = this.value;
+      document.getElementById("colorPreview").style.background = this.value;
+      localStorage.setItem("bnctv_global", JSON.stringify(globalData));
+    };
+    document.getElementById("colorPreview").style.background = globalData.bgcolor;
+    showLogoPreview();
+
+    function renderPosts(filterDept = "") {
+      if(adminVisible) { document.getElementById("posts").style.display="none"; return; }
+      document.getElementById("posts").style.display="";
+      document.getElementById("admin-panel").style.display="none";
+      document.body.style.background = globalData.bgcolor || "#f8f8f6";
+      const container = document.getElementById("posts");
+      container.innerHTML = "";
+      if(globalData.logo) {
+        const logoDiv = document.createElement("div");
+        logoDiv.style.textAlign = "center";
+        logoDiv.innerHTML = `<img src="${globalData.logo}" style="width:120px;max-width:50vw;margin:28px auto 10px auto;display:block;border-radius:14px;">`;
+        container.appendChild(logoDiv);
+      }
+      posts.filter(post=>{
+        if(!filterDept.trim()) return true;
+        return (post.dept||"").split(',').map(d=>d.trim()).includes(filterDept.trim());
+      }).forEach((post, i) => {
+        const div = document.createElement("div");
+        div.className = "post";
+        div.innerHTML = `
+          <img class="post-img" src="${post.image}" alt="image">
+          <div class="post-content">
+            <div class="desc-short">${post.desc}</div>
+            ${post.longDesc ? `<div class="desc-long">${post.longDesc}</div>` : ""}
+            <div class="badges-row">
+              ${(post.services && post.services.length) ? post.services.map(s=>`<span class="service-badge">${s}</span>`).join("") : ""}
+              ${(post.specialities && post.specialities.length) ? `<span class="specialities-row">${post.specialities.map(s=>(
+                s==="Flocon"?"❄️":s==="Brocoli"?"🥦":s==="Chocolat"?"🍫":s==="Pilule"?"💊":""
+              )).join("")}</span>` : ""}
+              ${post.dept ? `<span class="dept-badge">${post.dept.split(',').map(d=>d.trim()).join('</span> <span class="dept-badge">')}</span>` : ""}
+            </div>
+            ${(post.links && post.links.length) ? `
+              <div class="links-row">
+                ${post.links.map(l=>`<a href="${l.url}" target="_blank" class="link-btn">${l.name}</a>`).join("")}
+              </div>
+            ` : ""}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function toggleAdmin() {
+      adminVisible = !adminVisible;
+      document.getElementById("admin-panel").style.display = adminVisible ? "" : "none";
+      document.getElementById("posts").style.display = adminVisible ? "none" : "";
+      document.getElementById("toggle-admin-btn").innerText = adminVisible ? "Aperçu" : "Admin";
+      if(adminVisible) renderAdminPosts(); else renderPosts();
+      updateStorageInfo();
+      document.body.style.background = globalData.bgcolor || "#f8f8f6";
+      document.getElementById("colorPreview").style.background = globalData.bgcolor;
+      showLogoPreview();
+    }
+
+    function renderAdminPosts() {
+      const list = document.getElementById("admin-posts-list");
+      list.innerHTML = "";
+      posts.forEach((post, i) => {
+        const div = document.createElement("div");
+        div.innerHTML = `
+          <img src="${post.image}">
+          <span style="flex:1">${post.desc}</span>
+          <button onclick="editPost(${i})">Modifier</button>
+          <button onclick="deletePost(${i})" style="color:red">Supprimer</button>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function submitPost() {
+      const desc = document.getElementById("descInput").value;
+      const longDesc = document.getElementById("longDescInput").value;
+      const dept = document.getElementById("departementInput").value;
+      const imgInput = document.getElementById("imageInput");
+      const editIndex = document.getElementById("editIndex").value;
+      const links = [];
+      for (let i = 1; i <= 3; i++) {
+        const name = document.getElementById(`link${i}name`).value;
+        const url = document.getElementById(`link${i}url`).value;
+        if (name && url) links.push({ name, url });
+      }
+      const services = [];
+      if(document.getElementById("serviceLivraison").checked) services.push("Livraison");
+      if(document.getElementById("serviceSurplace").checked) services.push("Surplace");
+      if(document.getElementById("serviceEnvoi").checked) services.push("Envoi");
+      const specialities = [];
+      if(document.getElementById("specFlocon").checked) specialities.push("Flocon");
+      if(document.getElementById("specBrocoli").checked) specialities.push("Brocoli");
+      if(document.getElementById("specChocolat").checked) specialities.push("Chocolat");
+      if(document.getElementById("specPilule").checked) specialities.push("Pilule");
+      if (!desc) return alert("Description requise");
+      function saveAndReset(image) {
+        const post = { desc, longDesc, dept, image, links, services, specialities };
+        if (editIndex !== "") {
+          posts[+editIndex] = post;
+        } else {
+          posts.push(post);
+        }
+        if (!ramMode) {
+          localStorage.setItem("bnctv_posts", JSON.stringify(posts));
+        }
+        updateStorageInfo();
+        renderAdminPosts();
+        resetAdminForm();
+      }
+      if (imgInput.files[0]) {
+        resizeImage(imgInput.files[0], function(resizedDataUrl) {
+          saveAndReset(resizedDataUrl);
+        });
+      } else {
+        if (editIndex !== "") {
+          saveAndReset(posts[+editIndex].image);
+        } else {
+          alert("Image requise");
+        }
+      }
+    }
+
+    function editPost(i) {
+      const post = posts[i];
+      document.getElementById("editIndex").value = i;
+      document.getElementById("descInput").value = post.desc;
+      document.getElementById("longDescInput").value = post.longDesc || "";
+      document.getElementById("departementInput").value = post.dept || "";
+      ["Livraison","Surplace","Envoi"].forEach(s => {
+        document.getElementById("service"+s).checked = post.services && post.services.includes(s);
+      });
+      ["Flocon","Brocoli","Chocolat","Pilule"].forEach(s => {
+        document.getElementById("spec"+s).checked = post.specialities && post.specialities.includes(s);
+      });
+      post.links.forEach((l, idx) => {
+        document.getElementById(`link${idx+1}name`).value = l.name;
+        document.getElementById(`link${idx+1}url`).value = l.url;
+      });
+      for (let j = post.links.length+1; j <= 3; j++) {
+        document.getElementById(`link${j}name`).value = "";
+        document.getElementById(`link${j}url`).value = "";
+      }
+    }
+
+    function deletePost(i) {
+      if (!confirm("Supprimer ce post ?")) return;
+      posts.splice(i, 1);
+      if (!ramMode) {
+        localStorage.setItem("bnctv_posts", JSON.stringify(posts));
+      }
+      updateStorageInfo();
+      renderAdminPosts();
+    }
+    function resetAdminForm() {
+      document.getElementById("editIndex").value = "";
+      document.getElementById("descInput").value = "";
+      document.getElementById("longDescInput").value = "";
+      document.getElementById("departementInput").value = "";
+      document.getElementById("imageInput").value = "";
+      ["Livraison","Surplace","Envoi"].forEach(s => document.getElementById("service"+s).checked = false);
+      ["Flocon","Brocoli","Chocolat","Pilule"].forEach(s => document.getElementById("spec"+s).checked = false);
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById(`link${i}name`).value = "";
+        document.getElementById(`link${i}url`).value = "";
+      }
+    }
+    function exportPostsJSON() {
+      const toExport = {posts: posts, logo: globalData.logo, bgcolor: globalData.bgcolor};
+      const text = JSON.stringify(toExport, null, 2);
+      const blob = new Blob([text], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'posts.json';
+      a.click();
+    }
+    function importPostsJSON() {
+      ramMode = false;
+      const input = document.getElementById('importJsonInput');
+      input.onchange = function() {
+        if (!input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const imported = JSON.parse(e.target.result);
+            if (!Array.isArray(imported) && (!imported.posts || !Array.isArray(imported.posts))) {
+              alert("Le fichier n'est pas un tableau JSON valide !");
+              return;
+            }
+            if (!confirm("Importer ce JSON va remplacer tous les posts actuels. Continuer ?")) return;
+            if(Array.isArray(imported)) {
+              posts = imported;
+              globalData = {logo:"", bgcolor:"#f8f8f6"};
+            } else {
+              posts = imported.posts;
+              globalData.logo = imported.logo || "";
+              globalData.bgcolor = imported.bgcolor || "#f8f8f6";
+            }
+            localStorage.setItem("bnctv_posts", JSON.stringify(posts));
+            localStorage.setItem("bnctv_global", JSON.stringify(globalData));
+            renderAdminPosts();
+            updateStorageInfo();
+            document.getElementById("bgcolorInput").value = globalData.bgcolor || "#f8f8f6";
+            document.getElementById("colorPreview").style.background = globalData.bgcolor || "#f8f8f6";
+            showLogoPreview();
+            alert("Import réussi !");
+          } catch (err) {
+            alert("Erreur lors de la lecture du fichier JSON : " + err.message);
+          }
+        };
+        reader.readAsText(input.files[0]);
+      };
+      input.click();
+    }
+    function importPostsRAM() {
+      ramMode = true;
+      const input = document.getElementById('importJsonInputRAM');
+      input.onchange = function() {
+        if (!input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const imported = JSON.parse(e.target.result);
+            if (!Array.isArray(imported) && (!imported.posts || !Array.isArray(imported.posts))) {
+              alert("Le fichier n'est pas un tableau JSON valide !");
+              return;
+            }
+            if (!confirm("Importer ce JSON va remplacer tous les posts actuels (RAM seulement, rien ne sera enregistré dans le navigateur). Continuer ?")) return;
+            if(Array.isArray(imported)) {
+              posts = imported;
+              globalData = {logo:"", bgcolor:"#f8f8f6"};
+            } else {
+              posts = imported.posts;
+              globalData.logo = imported.logo || "";
+              globalData.bgcolor = imported.bgcolor || "#f8f8f6";
+            }
+            renderAdminPosts();
+            updateStorageInfo();
+            document.getElementById("bgcolorInput").value = globalData.bgcolor || "#f8f8f6";
+            document.getElementById("colorPreview").style.background = globalData.bgcolor || "#f8f8f6";
+            showLogoPreview();
+            alert("Import RAM réussi ! (tu dois exporter avant de fermer/actualiser)");
+          } catch (err) {
+            alert("Erreur lors de la lecture du fichier JSON : " + err.message);
+          }
+        };
+        reader.readAsText(input.files[0]);
+      };
+      input.click();
+    }
+    function exportHtmlFile() {
+      const baseHtml = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BNC TV - Carte Moderne</title>
+  <style>
+    body { font-family: 'Montserrat', Arial, sans-serif; background: BG_COLOR; margin:0;}
+    .logo-header {text-align:center;margin:28px auto 10px auto;}
+    .logo-header img {width:120px;max-width:50vw;border-radius:14px;}
+    .post {
+      max-width: 540px;
+      margin: 18px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.09);
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      padding: 12px 18px 12px 12px;
+      align-items: center;
+      min-height: 142px;
+      transition: box-shadow .19s;
+    }
+    .post:hover {
+      box-shadow: 0 6px 36px rgba(0,0,0,0.15);
+    }
+    .post-img {
+      width: 120px;
+      height: 120px;
+      min-width: 120px;
+      min-height: 120px;
+      object-fit: cover;
+      border-radius: 14px;
+      box-shadow: 0 1px 10px rgba(0,0,0,0.07);
+      background: #e5e5e5;
+    }
+    .post-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 7px;
+      min-width: 0;
+    }
+    .desc-short {
+      font-size: 1.15em;
+      font-weight: bold;
+      color: #222;
+      line-height: 1.21;
+      margin-bottom: 0px;
+    }
+    .desc-long {
+      font-size: 0.99em;
+      color: #464646;
+      line-height: 1.55;
+      margin-bottom: 0;
+      background: #f6f7fa;
+      border-radius: 5px;
+      padding: 8px 10px;
+      border-left: 3px solid #e2eaff;
+      margin-top: 3px;
+    }
+    .badges-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      align-items: center;
+      margin: 5px 0 0 0;
+    }
+    .service-badge {
+      background: #e5f4fb;
+      color: #1579b7;
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 0.99em;
+      font-weight: 600;
+    }
+    .specialities-row {
+      font-size: 1.33em;
+      display: inline-block;
+    }
+    .dept-badge {
+      background: #ffe1a8;
+      color: #352c00;
+      border-radius: 10px;
+      padding: 2px 10px;
+      font-size: 0.98em;
+      font-weight: 600;
+    }
+    .links-row {
+      margin-top: 9px;
+      display: flex;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+    .link-btn {
+      background: #206cff;
+      color: #fff;
+      padding: 7px 13px;
+      border-radius: 7px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.99em;
+      border: none;
+      display: inline-block;
+      box-shadow: 0 1px 4px rgba(32,108,255,0.09);
+      transition: background .17s;
+    }
+    .link-btn:hover { background: #1853c2; }
+    @media (max-width:700px) {
+      .post { max-width: 99vw; padding: 8px 5px 8px 5px; gap: 10px;}
+      .post-img { width: 86px; height: 86px; min-width:86px; min-height:86px;}
+      .desc-short { font-size: 1em;}
+      .desc-long { font-size: 0.94em; padding: 6px 7px;}
+      .link-btn { padding: 6px 9px; font-size: 0.97em;}
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-header">
+    LOGO
+  </div>
+  <main id="posts"></main>
+  <script>
+    const posts = REPLACE_ME_WITH_JSON;
+    function renderPosts() {
+      const container = document.getElementById("posts");
+      container.innerHTML = "";
+      posts.forEach((post) => {
+        const div = document.createElement("div");
+        div.className = "post";
+        div.innerHTML = \`
+          <img class="post-img" src="\${post.image}" alt="image">
+          <div class="post-content">
+            <div class="desc-short">\${post.desc}</div>
+            \${post.longDesc ? \`<div class="desc-long">\${post.longDesc}</div>\` : ""}
+            <div class="badges-row">
+              \${(post.services && post.services.length) ? post.services.map(s=>\`<span class="service-badge">\${s}</span>\`).join("") : ""}
+              \${(post.specialities && post.specialities.length) ? \`<span class="specialities-row">\${post.specialities.map(s=>(s==="Flocon"?"❄️":s==="Brocoli"?"🥦":s==="Chocolat"?"🍫":s==="Pilule"?"💊":"")).join("")}</span>\` : ""}
+              \${post.dept ? \`<span class="dept-badge">\${post.dept.split(',').map(d=>d.trim()).join('</span> <span class="dept-badge">')}</span>\` : ""}
+            </div>
+            \${(post.links && post.links.length) ? \`
+              <div class="links-row">
+                \${post.links.map(l=>\`<a href="\${l.url}" target="_blank" class="link-btn">\${l.name}</a>\`).join("")}
+              </div>
+            \` : ""}
+          </div>
+        \`;
+        container.appendChild(div);
+      });
+    }
+    renderPosts();
+  <\/script>
+</body>
+</html>
+      `.trim();
+      let logoHtml = globalData.logo ? `<img src="${globalData.logo}" alt="logo">` : '';
+      let postsJson = JSON.stringify(posts, null, 2);
+      let finalHtml = baseHtml
+        .replace('LOGO', logoHtml)
+        .replace('BG_COLOR', globalData.bgcolor)
+        .replace('REPLACE_ME_WITH_JSON', postsJson);
+      const blob = new Blob([finalHtml], {type:'text/html'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'IndexHTML.html';
+      a.click();
+    }
+    function fullResetStorage() {
+      if (confirm("Cette action va supprimer tous les posts et options. Continuer ?")) {
+        localStorage.clear();
+        posts = [];
+        globalData = {logo:"", bgcolor:"#f8f8f6"};
+        document.getElementById("bgcolorInput").value = globalData.bgcolor;
+        document.getElementById("colorPreview").style.background = globalData.bgcolor;
+        showLogoPreview();
+        renderAdminPosts();
+        updateStorageInfo();
+        alert("Stockage entièrement vidé.");
+      }
+    }
+    function resizeImage(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          const canvas = document.createElement("canvas");
+          const maxW = 400, maxH = 400;
+          let w = img.width, h = img.height;
+          if (w > h) { if (w > maxW) { h *= maxW / w; w = maxW; } }
+          else { if (h > maxH) { w *= maxH / h; h = maxH; } }
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          callback(canvas.toDataURL("image/jpeg", 0.5));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    function updateStorageInfo() {
+      let total = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        total += key.length + value.length;
+      }
+      const estimatedBytes = total * 2;
+      const el = document.getElementById("used-space");
+      if (el) el.textContent = 'Stockage utilisé : ' + formatBytes(estimatedBytes) + " / ~5 Mo";
+    }
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 o';
+      const k = 1024, sizes = ['o', 'Ko', 'Mo', 'Go'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    renderPosts();
+    updateStorageInfo();
+  </script>
+</body>
+</html>
